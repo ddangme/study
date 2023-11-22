@@ -33,7 +33,7 @@ public class MessageSourceTest {
 
     @Test
     void argumentMessage() {
-        messageSource.getMessage("hello.name", new Object[]{"Spring"}, null);
-        Assertions.assertThat("안녕 Spring");
+        String result = messageSource.getMessage("hello.name", new Object[]{"Spring"}, null);
+        Assertions.assertThat(result).isEqualTo("안녕 Spring");
     }
 }
