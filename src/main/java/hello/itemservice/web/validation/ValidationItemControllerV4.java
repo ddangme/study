@@ -2,6 +2,8 @@ package hello.itemservice.web.validation;
 
 import hello.itemservice.domain.item.Item;
 import hello.itemservice.domain.item.ItemRepository;
+import hello.itemservice.web.validation.dto.ItemSaveDto;
+import hello.itemservice.web.validation.dto.ItemUpdateDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -42,8 +44,15 @@ public class ValidationItemControllerV4 {
     }
 
     @PostMapping("/add")
-    public String addItem(@Validated  @ModelAttribute Item item, BindingResult bindingResult,
-                            RedirectAttributes redirectAttributes, Model model) {
+    public String addItem(@Validated @ModelAttribute("item") ItemSaveDto dto, BindingResult bindingResult,
+                          RedirectAttributes redirectAttributes, Model model) {
+
+        if (dto.getPrice() != null && dto.getQuantity() != null) {
+            int resultPrice = dto.getPrice() * dto.getQuantity();
+            if (resultPrice < 10_000) {
+                bindingResult.reject("totalPriceMin", new Object[]{10_000, resultPrice}, null);
+            }
+        }
 
         // 검증에 실패하면 다시 입력 폼으로 이동한다.
         if (bindingResult.hasErrors()) {
@@ -52,6 +61,7 @@ public class ValidationItemControllerV4 {
         }
 
         // 검증에 성공했을 경우 상세 페이지로 이동한다.
+        Item item = new Item(dto.getItemName(), dto.getPrice(), dto.getQuantity());
         Item savedItem = itemRepository.save(item);
         redirectAttributes.addAttribute("itemId", savedItem.getId());
         redirectAttributes.addAttribute("status", true);
@@ -66,7 +76,21 @@ public class ValidationItemControllerV4 {
     }
 
     @PostMapping("/{itemId}/edit")
-    public String edit(@PathVariable Long itemId, @ModelAttribute Item item) {
+    public String edit(@PathVariable Long itemId, @Validated @ModelAttribute("item") ItemUpdateDto dto
+            , BindingResult bindingResult) {
+
+        if (dto.getPrice() != null && dto.getQuantity() != null) {
+            int resultPrice = dto.getPrice() * dto.getQuantity();
+            if (resultPrice < 10_000) {
+                bindingResult.reject("totalPriceMin", new Object[]{10_000, resultPrice}, null);
+            }
+        }
+
+        if (bindingResult.hasErrors()) {
+            log.info("errors={}", bindingResult);
+            return "validation/v4/editForm";
+        }
+        Item item = new Item(dto.getItemName(), dto.getPrice(), dto.getQuantity());
         itemRepository.update(itemId, item);
         return "redirect:/validation/v4/items/{itemId}";
     }
