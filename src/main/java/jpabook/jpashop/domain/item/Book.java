@@ -2,6 +2,7 @@ package jpabook.jpashop.domain.item;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jpabook.jpashop.web.BookForm;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,4 +13,5 @@ public class Book extends Item{
 
     private String author;
     private String isbn;
+
 }
